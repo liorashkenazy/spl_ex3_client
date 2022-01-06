@@ -9,7 +9,9 @@ using std::cerr;
 using std::endl;
 using std::string;
  
-ConnectionHandler::ConnectionHandler(string host, short port): host_(host), port_(port), io_service_(), socket_(io_service_), should_terminate(false){}
+ConnectionHandler::ConnectionHandler(string host, short port): host_(host), port_(port), io_service_(),
+                                                                socket_(io_service_), should_terminate(false),
+                                                                send_buffer(), receive_buffer(){}
     
 ConnectionHandler::~ConnectionHandler() {
     close();
@@ -58,37 +60,40 @@ bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
 		if (error)
 			throw boost::system::system_error(error);
     } catch (std::exception& e) {
-        std::cerr << "recv failed (Error: " << e.what() << ')' << std::endl;
+        std::cerr << "send failed (Error: " << e.what() << ')' << std::endl;
         return false;
     }
     return true;
 }
  
 bool ConnectionHandler::getMsg(std::string& line) {
+    receive_buffer.clear();
     if (!getNextMessage(';')) {
         return false;
     }
-    messageEncoderDecoder::decode(receive_buffer, line, &should_terminate);
+    messageEncoderDecoder::decode(receive_buffer.data(), receive_buffer.size(), line, &should_terminate);
     return true;
 }
 
 bool ConnectionHandler::sendMsg(std::string& line) {
-    int size = messageEncoderDecoder::encode(line, send_buffer, sizeof(send_buffer));
-    return sendBytes(send_buffer, size);
+    send_buffer.clear();
+    // If this is not a valid action, don't send anything to the server
+    if (!messageEncoderDecoder::encode(line, send_buffer)) {
+        return true;
+    }
+    return sendBytes(send_buffer.data(), send_buffer.size());
 }
  
 bool ConnectionHandler::getNextMessage(char delimiter) {
     // Stop when we encounter the null character. 
     // Notice that the null character is not appended to the frame string.
-    int index = 0;
-    try {
-		do{
-			getBytes(&receive_buffer[index++], 1);
-        } while (delimiter != receive_buffer[index - 1]);
-    } catch (std::exception& e) {
-        std::cerr << "recv failed (Error: " << e.what() << ')' << std::endl;
-        return false;
-    }
+    char ch;
+    do {
+        if (!getBytes(&ch, 1)) {
+            return false;
+        }
+        receive_buffer.push_back(ch);
+    } while (delimiter != ch);
     return true;
 }
 

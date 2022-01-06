@@ -11,6 +11,6 @@
 
 class messageEncoderDecoder {
 public:
-    static int encode(const std::string& input, char bytes[], int size);
-    static void decode(char bytes[], std::string& output, bool *is_logout);
+    static bool encode(const std::string& input, std::vector<char> &bytes);
+    static void decode(char *bytes, size_t len, std::string& output, bool *is_logout);
 };

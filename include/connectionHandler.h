@@ -14,8 +14,8 @@ private:
 	boost::asio::io_service io_service_;   // Provides core I/O functionality
 	tcp::socket socket_;
     bool should_terminate;
-    char send_buffer[1024];
-    char receive_buffer[1024];
+    std::vector<char> send_buffer;
+    std::vector<char> receive_buffer;
 
     // Read a fixed number of bytes from the server - blocking.
     // Returns false in case the connection is closed before bytesToRead bytes can be read.

@@ -9,10 +9,7 @@ void receiveForever(ConnectionHandler *conn) {
         if (!conn->getMsg(answer)) {
             break;
         }
-
-        int len = answer.length();
-        answer.resize(len - 1);
-        std::cout << "Reply: " << answer << " " << len << " bytes " << std::endl << std::endl;
+        std::cout << "Reply: " << answer << std::endl;
     }
 }
 
@@ -38,16 +35,13 @@ int main (int argc, char *argv[]) {
         char buf[bufsize];
         std::cin.getline(buf, bufsize);
 		std::string message(buf);
-		int len = message.length();
         if (!connectionHandler.sendMsg(message)) {
             std::cout << "Disconnected. Exiting...\n" << std::endl;
             break;
         }
-        if (message.substr(0, message.find(' ')).compare("LOGOUT")) {
+        if (message.substr(0, message.find(' ')).compare("LOGOUT") == 0) {
             break;
         }
-		// connectionHandler.sendMsg(line) appends '\n' to the message, therefore we send len+1 bytes.
-        std::cout << "Sent " << len+1 << " bytes to server" << std::endl;
     }
 
     receiver_thread.join();
