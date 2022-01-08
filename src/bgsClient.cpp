@@ -45,6 +45,5 @@ int main (int argc, char *argv[]) {
     }
 
     receiver_thread.join();
-    std::cout << "Reached here" << std::endl;
     return 0;
 }

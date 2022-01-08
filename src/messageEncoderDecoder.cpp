@@ -81,7 +81,7 @@ void encodePM(const std::string &input, std::vector<char> &bytes) {
     std::time_t timer = std::time(0);
     std::tm *now = std::localtime(&timer);
     std::stringstream date_str_stream;
-    date_str_stream << std::put_time(now, "%d-%m-%Y %H-%M");
+    date_str_stream << std::put_time(now, "%d-%m-%Y %H:%M");
     std::string date_str = date_str_stream.str();
     splitAndAppend(date_str, 0, 1, bytes);
 }
@@ -180,8 +180,11 @@ void messageEncoderDecoder::decode(char *bytes, size_t len, std::string &output,
     }
     else if (opcode == 11) {
         output.append("ERROR ");
-        short ack_op = bytesToShort(&bytes[current_index]);
+        short err_op = bytesToShort(&bytes[current_index]);
         current_index += 2;
-        output.append(std::to_string(ack_op));
+        output.append(std::to_string(err_op));
+        if (err_op == 3) {
+            *is_logout = true;
+        }
     }
 }
